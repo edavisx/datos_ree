@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta a la API de REE</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            margin-top: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Consulta de Datos Energéticos (REE)</h1>
+    <form id="apiForm">
+        <div class="mb-3">
+            <label for="region" class="form-label">Selecciona la Región:</label>
+            <select class="form-select" id="region" required>
+                <option value="" disabled selected>Selecciona una opción</option>
+                <option value="region1">Región 1</option>
+                <option value="region2">Región 2</option>
+                <option value="region3">Región 3</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="categoria" class="form-label">Selecciona la Categoría:</label>
+            <select class="form-select" id="categoria" required>
+                <option value="" disabled selected>Selecciona una opción</option>
+                <option value="consumo">Consumo</option>
+                <option value="generacion">Generación</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="fecha" class="form-label">Selecciona la Fecha:</label>
+            <input type="date" class="form-control" id="fecha" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Realizar Consulta</button>
+    </form>
+
+    <!-- Tabla de resultados -->
+    <table class="table table-bordered table-hover" id="resultTable">
+        <thead>
+        <tr>
+            <th>Campo</th>
+            <th>Valor</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Filas dinámicas generadas por JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.getElementById("apiForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        // Obtener los valores seleccionados
+        const region = document.getElementById("region").value;
+        const categoria = document.getElementById("categoria").value;
+        const fecha = document.getElementById("fecha").value;
+
+        // Construir la URL de la API (cambia el endpoint según las especificaciones de REE)
+        const apiUrl = `https://api.ree.es/v1/${categoria}?region=${region}&date=${fecha}`;
+
+        // Realizar la petición a la API
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error en la consulta a la API");
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Mostrar los datos en la tabla
+                const tableBody = document.querySelector("#resultTable tbody");
+                tableBody.innerHTML = ""; // Limpiar la tabla
+
+                // Iterar sobre las claves del objeto JSON y mostrarlo en la tabla
+                for (const key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        const tr = document.createElement("tr");
+
+                        const tdKey = document.createElement("td");
+                        tdKey.textContent = key;
+                        tr.appendChild(tdKey);
+
+                        const tdValue = document.createElement("td");
+                        tdValue.textContent = data[key];
+                        tr.appendChild(tdValue);
+
+                        tableBody.appendChild(tr);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error en la consulta:", error);
+                alert("Hubo un error al realizar la consulta. Verifica los datos ingresados.");
+            });
+    });
+</script>
+</body>
+</html>
