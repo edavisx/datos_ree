@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Balance Eléctrico</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            margin-top: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Consulta Balance Eléctrico (REE)</h1>
+    <form id="apiForm">
+        <div class="mb-3">
+            <label for="start_date" class="form-label">Fecha de Inicio:</label>
+            <input type="datetime-local" class="form-control" id="start_date" required>
+        </div>
+        <div class="mb-3">
+            <label for="end_date" class="form-label">Fecha de Fin:</label>
+            <input type="datetime-local" class="form-control" id="end_date" required>
+        </div>
+        <div class="mb-3">
+            <label for="time_trunc" class="form-label">Granularidad:</label>
+            <select class="form-select" id="time_trunc" required>
+                <option value="" disabled selected>Selecciona una opción</option>
+                <option value="hour">Hora</option>
+                <option value="day">Día</option>
+                <option value="month">Mes</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Realizar Consulta</button>
+    </form>
+
+    <!-- Tabla de resultados -->
+    <table class="table table-bordered table-hover" id="resultTable">
+        <thead>
+        <tr>
+            <th>Campo</th>
+            <th>Valor</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Filas dinámicas generadas por JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.getElementById("apiForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        // Obtener los valores ingresados por el usuario
+        const startDate = document.getElementById("start_date").value;
+        const endDate = document.getElementById("end_date").value;
+        const timeTrunc = document.getElementById("time_trunc").value;
+
+        // Validar los datos
+        if (!startDate || !endDate || !timeTrunc) {
+            alert("Por favor, completa todos los campos.");
+            return;
+        }
+
+        // Construir la URL de la API
+        const apiUrl = `https://apidatos.ree.es/es/datos/balance/balance-electrico?start_date=${startDate}&end_date=${endDate}&time_trunc=${timeTrunc}`;
+
+        // Realizar la solicitud a la API
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error en la consulta a la API");
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Mostrar los resultados en la tabla
+                const tableBody = document.querySelector("#resultTable tbody");
+                tableBody.innerHTML = ""; // Limpiar la tabla
+
+                // Iterar sobre los datos recibidos y mostrarlos
+                const datos = data.included || []; // Ajusta según la estructura del JSON
+                datos.forEach(item => {
+                    const tr = document.createElement("tr");
+
+                    // Campo
+                    const tdCampo = document.createElement("td");
+                    tdCampo.textContent = item.id || "N/A"; // Cambiar según estructura
+                    tr.appendChild(tdCampo);
+
+                    // Valor
+                    const tdValor = document.createElement("td");
+                    tdValor.textContent = JSON.stringify(item.attributes) || "N/A"; // Cambiar según estructura
+                    tr.appendChild(tdValor);
+
+                    tableBody.appendChild(tr);
+                });
+            })
+            .catch(error => {
+                console.error("Error en la consulta:", error);
+                alert("Hubo un problema al realizar la consulta. Verifica los datos e inténtalo nuevamente.");
+            });
+    });
+</script>
+</body>
+</html>
